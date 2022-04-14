@@ -1,0 +1,8 @@
+
+# world-sim executables
+
+.DS_Store
+
+wsctl
+ws
+dist

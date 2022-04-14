@@ -1,0 +1,10 @@
+
+{
+  "imports": {
+    "ddapps/": "https://deno.land/x/ddapps@1.5.4/",
+    "eta": "https://deno.land/x/eta@v1.12.3/mod.ts",
+    "std/": "https://deno.land/std@0.130.0/",
+    "plot": "https://deno.land/x/chart@1.0.1/mod.ts",
+    "cliffy": "https://deno.land/x/cliffy@v0.19.5/command/mod.ts"
+  }
+}

@@ -1,0 +1,143 @@
+import './Logs.css';
+import React from 'react';
+import { WSClient } from './client.bundle';
+import { Accordion, ButtonGroup, Button, ToggleButton } from 'react-bootstrap';
+
+
+export default class Logs extends React.Component {
+
+  client;
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      follow: true,
+      logs: [],
+      level: "errors"
+    };
+  }
+
+  // [FIXME] Too much clients...
+  componentWillUnmount() {
+    this.client?.disconnect();
+  }
+
+  async componentDidMount() {
+
+    this.client = await new WSClient(this.props.host, this.props.port).co
+      .then((client) => {
+
+        this.setState({ logs: [] });
+
+        client.ws.onclose = () => {
+          // this.setState({ logs: [] });
+          setTimeout(() => {
+            this.componentDidMount();
+          }, 1000);
+        };
+
+        client.listen("MonWatch", (message) => {
+          if (this.state.follow && this.filter(message)) {
+            const logs = [...this.state.logs, message];
+            this.setState({
+              logs: logs
+            });
+          }
+        });
+
+        client.monwatch("/ddapps/node/logs");
+      }).catch((error) => {
+        // this.setState({ logs: [] });
+        console.error(error);
+        setTimeout(() => {
+          this.componentDidMount();
+        }, 1000);
+      });
+  }
+
+  filter = (message) => {
+    if (this.state.level === "partial") {
+      return this.isIOMessage(message) || this.isErrorLog(message.payload.payload.value);
+    } else if (this.state.level === "io") {
+      return this.isIOMessage(message);
+    } else if (this.state.level === "errors") {
+      return this.isErrorLog(message.payload.payload.value);
+    } else {
+      return true;
+    }
+  };
+
+  isErrorLog(log) {
+    if (log.type === "LogMessage") {
+      return log.payload.message.includes("Error")
+        || log.payload.message.includes("Invalid")
+        || log.payload.message.includes("Fail");
+    } else {
+      return false;
+    }
+  }
+
+  isIOMessage(message) {
+    if (message.type === "ClientNotification") {
+      const source = message.payload.payload.value.source;
+      const destination = message.payload.payload.value.destination;
+      return !/[a-z]+/g.test(source) || !/[a-z]+/g.test(destination);
+    } else {
+      return false;
+    }
+  }
+
+  render() {
+    return (
+      <div>
+        <ToggleButton
+          id="toggle-check"
+          type="checkbox"
+          variant={this.state.follow ? "success" : "danger"}
+          checked={this.state.follow}
+          value="1"
+          onChange={(e) => this.setState({ follow: e.currentTarget.checked })}
+        >
+          Follow
+        </ToggleButton>
+        <Button onClick={() => this.setState({ logs: [] })} variant="warning">Flush</Button>
+        <ButtonGroup aria-label="Basic example">
+          <Button onClick={() => this.setState({ level: "errors" })} variant={this.state.level === "errors" ? "primary" : "secondary"}>Errors</Button>
+          <Button onClick={() => this.setState({ level: "io" })} variant={this.state.level === "io" ? "primary" : "secondary"}>I/O</Button>
+          <Button onClick={() => this.setState({ level: "partial" })} variant={this.state.level === "partial" ? "primary" : "secondary"}>Partial</Button>
+          <Button onClick={() => this.setState({ level: "full" })} variant={this.state.level === "full" ? "primary" : "secondary"}>Full</Button>
+        </ButtonGroup>
+        <Accordion className="Logs">
+          {
+            this.state.logs.map((notification, index) => {
+              const log = notification.payload.payload.value;
+              return (
+                <Accordion.Item eventKey={notification.payload.timestamp + index + notification.payload.token} key={index} className="log">
+                  <Accordion.Header>
+                    <div className="header">
+                      <span className="headerlabel" style={{
+                        color: /[a-z]+/g.test(log.source) ? 'inherit' : 'rgb(0, 189, 0)'
+                      }} >{log.source}</span>
+                      <span className="headerlabel" style={{
+                        color: /[a-z]+/g.test(log.destination) ? 'inherit' : 'blue'
+                      }} >{log.destination}</span>
+                      <span className="headerlabel-2" style={{
+                        color: log.type === "LogMessage" && this.isErrorLog(log) ? 'red' : 'inherit'
+                      }}>
+                        {log.type === "LogMessage" ? `${log.payload.message.substring(0, 100)}` : log.type}
+                      </span>
+                    </div>
+                  </Accordion.Header>
+                  <Accordion.Body>
+                    <pre>{JSON.stringify(log.payload, null, 2)}</pre>
+                  </Accordion.Body>
+                </Accordion.Item>
+              );
+            })
+          }
+        </Accordion>
+      </div>
+    );
+  }
+}

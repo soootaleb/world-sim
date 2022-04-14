@@ -1,0 +1,27 @@
+
+{
+  "importMap": "import_map.json",
+  "tasks": {
+    "start": "deno run -A --unstable world-sim.ddapps.ts",
+    "start-debug": "deno run -L debug -A --unstable world-sim.ddapps.ts",
+    "start-ui": "cd ui && yarn start",
+    "cli": "deno run -A --unstable cli/cli.ddapps.ts",
+    "build-ui": "cd ui && npm run build",
+    "build-serve-ui": "cd ui && npm run build && python3 -m http.server -d build",
+    "bundle-client": "deno bundle --unstable src/client.ddapps.ts ui/src/client.bundle.js",
+    "compile": "deno task compile-cli && deno task compile-world-sim",
+    "compile-linux": "deno task compile-cli-linux && deno task compile-world-sim-linux",
+    "compile-cli": "deno compile --allow-all --unstable --output wsctl --import-map=import_map.json cli/cli.ddapps.ts",
+    "compile-cli-linux": "deno compile --allow-all --unstable --output wsctl --import-map=import_map.json --target=x86_64-unknown-linux-gnu cli/cli.ddapps.ts",
+    "compile-world-sim": "deno compile --allow-all --unstable --output ws --import-map=import_map.json world-sim.ddapps.ts",
+    "compile-world-sim-linux": "deno compile --allow-all --unstable --output ws --import-map=import_map.json --target=x86_64-unknown-linux-gnu world-sim.ddapps.ts",
+    "remote-deploy": "deno task compile-linux && scp -i '~/.ssh/dbx_k3s' ws root@163.172.140.233:/ws; scp -i '~/.ssh/dbx_k3s' wsctl root@163.172.140.233:/wsctl",
+    "remote-run": "ssh -i '~/.ssh/dbx_k3s' root@scw 'pkill ws; /ws --run &> /ws.log &'",
+    "remote-upgrade": "deno task remote-deploy && deno task remote-run"
+  },
+  "fmt": {
+    "options": {
+      "lineWidth": 180
+    }
+  }
+}

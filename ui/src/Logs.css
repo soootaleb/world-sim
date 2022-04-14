@@ -1,0 +1,33 @@
+
+
+.Logs {
+  width: 100%;
+  height: 100%;
+  overflow: scroll;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  font-family: 'Courier New', Courier, monospace;
+  margin-top: 1%;
+}
+
+.header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.headerlabel {
+  flex: 1;
+  font-weight: bold;
+}
+
+.headerlabel-2 {
+  flex: 3;
+  font-weight: bold;
+}
+
+.accordion-button {
+  padding: 5px 1% !important;
+}
