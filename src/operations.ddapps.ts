@@ -13,6 +13,7 @@ export enum EWSOpType {
   Create = "Create",
   Config = "Config",
   GetState = "GetState",
+  UnGetState = "UnGetState",
   CreateError = "CreateError",
   DeleteError = "DeleteError",
   EntityNotFound = "EntityNotFound",
@@ -45,6 +46,7 @@ export interface IWSRequestPayload extends IRequestPayload {
 
   [EWSOpType.Chop]: string;
   [EWSOpType.GetState]: null;
+  [EWSOpType.UnGetState]: null;
   [EWSOpType.SetTicksFrequency]: number;
 }
 
@@ -62,6 +64,7 @@ export interface IWSResponsePayload extends IResponsePayload {
     tick: number,
     state: TWSSimState
   };
+  [EWSOpType.UnGetState]: null;
   [EWSOpType.EntityNotFound]: string;
   [EWSOpType.Config]: {
     success: boolean,

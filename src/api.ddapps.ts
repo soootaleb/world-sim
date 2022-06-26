@@ -82,6 +82,15 @@ export class WSApi extends Api<
           token: message.payload.token,
           source: message.source
         });
+        this.response(EWSOpType.GetState, {
+          tick: this.state.tick.val,
+          state: this.state.sim
+        })
+        break;
+      }
+      case EWSOpType.UnGetState: {
+        this.state.watchers = this.state.watchers.filter((watcher) => watcher.source != message.source)
+        this.response(EWSOpType.UnGetState, null)
         break;
       }
       case EWSOpType.Throw: {

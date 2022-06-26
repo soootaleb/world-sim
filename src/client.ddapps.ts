@@ -80,6 +80,10 @@ export class WSClient extends Client<
     return this.send(EWSOpType.GetState, null);
   }
   
+  public unwatch() {
+    return this.send(EWSOpType.UnGetState, null);
+  }
+  
   public tick(amount: number) {
     return this.send(EWSOpType.Tick, amount);
   }

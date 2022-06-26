@@ -3,58 +3,59 @@
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
 var EComponent;
-(function(EComponent1) {
-    EComponent1["Net"] = "Net";
-    EComponent1["Peer"] = "Peer";
-    EComponent1["Discovery"] = "Discovery";
-    EComponent1["Monitor"] = "Monitor";
-    EComponent1["Logger"] = "Logger";
-    EComponent1["Api"] = "Api";
-    EComponent1["ALL"] = "Messenger";
+(function(EComponent) {
+    EComponent["Net"] = "Net";
+    EComponent["Peer"] = "Peer";
+    EComponent["Discovery"] = "Discovery";
+    EComponent["Monitor"] = "Monitor";
+    EComponent["Logger"] = "Logger";
+    EComponent["Api"] = "Api";
+    EComponent["ALL"] = "Messenger";
 })(EComponent || (EComponent = {}));
 var EMonOpType;
-(function(EMonOpType1) {
-    EMonOpType1["Set"] = "Set";
-    EMonOpType1["Get"] = "Get";
+(function(EMonOpType) {
+    EMonOpType["Set"] = "Set";
+    EMonOpType["Get"] = "Get";
 })(EMonOpType || (EMonOpType = {}));
 var EMType;
-(function(EMType2) {
-    EMType2["Any"] = "Any";
-    EMType2["LogMessage"] = "LogMessage";
-    EMType2["InitialMessage"] = "InitialMessage";
-    EMType2["DiscoveryResult"] = "DiscoveryResult";
-    EMType2["DiscoveryEndpointCalled"] = "DiscoveryEndpointCalled";
-    EMType2["ClientRequest"] = "ClientRequest";
-    EMType2["ClientResponse"] = "ClientResponse";
-    EMType2["ClientNotification"] = "ClientNotification";
-    EMType2["ClientConnectionOpen"] = "ClientConnectionOpen";
-    EMType2["ClientConnectionClose"] = "ClientConnectionClose";
-    EMType2["PeerConnectionRequest"] = "PeerConnectionRequest";
-    EMType2["PeerConnectionAccepted"] = "PeerConnectionAccepted";
-    EMType2["PeerConnectionOpen"] = "PeerConnectionOpen";
-    EMType2["PeerConnectionSuccess"] = "PeerConnectionSuccess";
-    EMType2["PeerConnectionClose"] = "PeerConnectionClose";
-    EMType2["MonGetRequest"] = "MonGetRequest";
-    EMType2["MonGetResponse"] = "MonGetResponse";
-    EMType2["MonSetRequest"] = "MonSetRequest";
-    EMType2["MonSetResponse"] = "MonSetResponse";
-    EMType2["MonWatchRequest"] = "MonWatchRequest";
-    EMType2["InvalidMessageDestination"] = "InvalidMessageDestination";
-    EMType2["InvalidClientRequestType"] = "InvalidClientRequestType";
+(function(EMType) {
+    EMType["Any"] = "Any";
+    EMType["LogMessage"] = "LogMessage";
+    EMType["InitialMessage"] = "InitialMessage";
+    EMType["DiscoveryResult"] = "DiscoveryResult";
+    EMType["DiscoveryEndpointCalled"] = "DiscoveryEndpointCalled";
+    EMType["ClientRequest"] = "ClientRequest";
+    EMType["ClientResponse"] = "ClientResponse";
+    EMType["ClientNotification"] = "ClientNotification";
+    EMType["ClientConnectionOpen"] = "ClientConnectionOpen";
+    EMType["ClientConnectionClose"] = "ClientConnectionClose";
+    EMType["PeerConnectionRequest"] = "PeerConnectionRequest";
+    EMType["PeerConnectionAccepted"] = "PeerConnectionAccepted";
+    EMType["PeerConnectionOpen"] = "PeerConnectionOpen";
+    EMType["PeerConnectionSuccess"] = "PeerConnectionSuccess";
+    EMType["PeerConnectionClose"] = "PeerConnectionClose";
+    EMType["MonGetRequest"] = "MonGetRequest";
+    EMType["MonGetResponse"] = "MonGetResponse";
+    EMType["MonSetRequest"] = "MonSetRequest";
+    EMType["MonSetResponse"] = "MonSetResponse";
+    EMType["MonWatchRequest"] = "MonWatchRequest";
+    EMType["InvalidMessageDestination"] = "InvalidMessageDestination";
+    EMType["InvalidClientRequestType"] = "InvalidClientRequestType";
 })(EMType || (EMType = {}));
 var EOpType;
-(function(EOpType2) {
-    EOpType2["Any"] = "Any";
-    EOpType2["Ping"] = "Ping";
-    EOpType2["Pong"] = "Pong";
-    EOpType2["MonOp"] = "MonOp";
-    EOpType2["MonWatch"] = "MonWatch";
-    EOpType2["Crash"] = "Crash";
-    EOpType2["Trace"] = "Trace";
+(function(EOpType) {
+    EOpType["Any"] = "Any";
+    EOpType["Ping"] = "Ping";
+    EOpType["Pong"] = "Pong";
+    EOpType["MonOp"] = "MonOp";
+    EOpType["MonWatch"] = "MonWatch";
+    EOpType["Crash"] = "Crash";
+    EOpType["Trace"] = "Trace";
 })(EOpType || (EOpType = {}));
 class Client extends Object {
     static DEFAULT_SERVER_ADDR = "127.0.0.1";
     static DEFAULT_SERVER_PORT = 8080;
+    _disconnectOnClientResponse;
     _server;
     get endpoint() {
         const protocol = this._server.port === 443 ? "wss" : "ws";
@@ -67,12 +68,16 @@ class Client extends Object {
     get co() {
         return this._connection.promise;
     }
+    keepalive() {
+        this._disconnectOnClientResponse = false;
+    }
     disconnect() {
         this.ws.close();
     }
     constructor(addr = Client.DEFAULT_SERVER_ADDR, port = Client.DEFAULT_SERVER_PORT, trace = false){
         super();
         this.trace = trace;
+        this._disconnectOnClientResponse = true;
         this._server = {
             addr: Client.DEFAULT_SERVER_ADDR,
             port: Client.DEFAULT_SERVER_PORT
@@ -131,7 +136,7 @@ class Client extends Object {
             this._requests[token] = {
                 resolve: (v)=>{
                     resolve(v);
-                    this.disconnect();
+                    if (this._disconnectOnClientResponse) this.disconnect();
                 },
                 reject: reject
             };
@@ -141,7 +146,7 @@ class Client extends Object {
         if (Object.keys(this._requests).includes(message.payload.token)) {
             this._requests[message.payload.token].resolve(message);
             delete this._requests[message.payload.token];
-            delete this._listeners[message.payload.type];
+            if (this._disconnectOnClientResponse) delete this._listeners[message.payload.type];
         } else {
             console.log(`Client::ClientResponse::Error::InvalidToken::${message.payload.token}`);
         }
@@ -206,72 +211,41 @@ class Client extends Object {
     listen(type, callback) {
         this._listeners[type] = callback;
     }
+    unlisten(type) {
+        delete this._listeners[type];
+    }
     trace;
 }
-var EMType1;
-(function(EMType3) {
-    EMType3["Any"] = "Any";
-    EMType3["LogMessage"] = "LogMessage";
-    EMType3["InitialMessage"] = "InitialMessage";
-    EMType3["DiscoveryResult"] = "DiscoveryResult";
-    EMType3["DiscoveryEndpointCalled"] = "DiscoveryEndpointCalled";
-    EMType3["ClientRequest"] = "ClientRequest";
-    EMType3["ClientResponse"] = "ClientResponse";
-    EMType3["ClientNotification"] = "ClientNotification";
-    EMType3["ClientConnectionOpen"] = "ClientConnectionOpen";
-    EMType3["ClientConnectionClose"] = "ClientConnectionClose";
-    EMType3["PeerConnectionRequest"] = "PeerConnectionRequest";
-    EMType3["PeerConnectionAccepted"] = "PeerConnectionAccepted";
-    EMType3["PeerConnectionOpen"] = "PeerConnectionOpen";
-    EMType3["PeerConnectionSuccess"] = "PeerConnectionSuccess";
-    EMType3["PeerConnectionClose"] = "PeerConnectionClose";
-    EMType3["MonGetRequest"] = "MonGetRequest";
-    EMType3["MonGetResponse"] = "MonGetResponse";
-    EMType3["MonSetRequest"] = "MonSetRequest";
-    EMType3["MonSetResponse"] = "MonSetResponse";
-    EMType3["MonWatchRequest"] = "MonWatchRequest";
-    EMType3["InvalidMessageDestination"] = "InvalidMessageDestination";
-    EMType3["InvalidClientRequestType"] = "InvalidClientRequestType";
-})(EMType1 || (EMType1 = {}));
-var EOpType1;
-(function(EOpType3) {
-    EOpType3["Any"] = "Any";
-    EOpType3["Ping"] = "Ping";
-    EOpType3["Pong"] = "Pong";
-    EOpType3["MonOp"] = "MonOp";
-    EOpType3["MonWatch"] = "MonWatch";
-    EOpType3["Crash"] = "Crash";
-    EOpType3["Trace"] = "Trace";
-})(EOpType1 || (EOpType1 = {}));
 var EWSOpType;
-(function(EWSOpType1) {
-    EWSOpType1["Chop"] = "Chop";
-    EWSOpType1["Run"] = "Run";
-    EWSOpType1["Throw"] = "Throw";
-    EWSOpType1["Tick"] = "Tick";
-    EWSOpType1["Reset"] = "Reset";
-    EWSOpType1["Delete"] = "Delete";
-    EWSOpType1["Create"] = "Create";
-    EWSOpType1["Config"] = "Config";
-    EWSOpType1["GetState"] = "GetState";
-    EWSOpType1["CreateError"] = "CreateError";
-    EWSOpType1["DeleteError"] = "DeleteError";
-    EWSOpType1["EntityNotFound"] = "EntityNotFound";
-    EWSOpType1["SetTicksFrequency"] = "SetTicksFrequency";
+(function(EWSOpType) {
+    EWSOpType["Chop"] = "Chop";
+    EWSOpType["Run"] = "Run";
+    EWSOpType["Throw"] = "Throw";
+    EWSOpType["Tick"] = "Tick";
+    EWSOpType["Reset"] = "Reset";
+    EWSOpType["Delete"] = "Delete";
+    EWSOpType["Create"] = "Create";
+    EWSOpType["Config"] = "Config";
+    EWSOpType["GetState"] = "GetState";
+    EWSOpType["UnGetState"] = "UnGetState";
+    EWSOpType["CreateError"] = "CreateError";
+    EWSOpType["DeleteError"] = "DeleteError";
+    EWSOpType["EntityNotFound"] = "EntityNotFound";
+    EWSOpType["SetTicksFrequency"] = "SetTicksFrequency";
 })(EWSOpType || (EWSOpType = {}));
 class WSClient extends Client {
     trc = "";
     constructor(addr = Client.DEFAULT_SERVER_ADDR, port = Client.DEFAULT_SERVER_PORT, trace = false){
         super(addr, port, trace);
         if (trace) {
-            this.listen(EOpType1.Trace, (message)=>{
+            this.listen(EOpType.Trace, (message)=>{
                 this.trc += message.payload.payload + " -> ";
                 console.clear();
                 console.log("[Trace]", this.trc);
             });
         }
     }
-    [EMType1.ClientResponse](message) {
+    [EMType.ClientResponse](message) {
         super.ClientResponse(message);
         if (this.trc.length) {
             console.clear();
@@ -307,6 +281,9 @@ class WSClient extends Client {
     }
     watch() {
         return this.send(EWSOpType.GetState, null);
+    }
+    unwatch() {
+        return this.send(EWSOpType.UnGetState, null);
     }
     tick(amount) {
         return this.send(EWSOpType.Tick, amount);
