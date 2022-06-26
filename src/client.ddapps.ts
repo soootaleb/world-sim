@@ -1,7 +1,7 @@
 
 import { Client } from "ddapps/client.ts";
-import { EMType } from "https://deno.land/x/ddapps@1.5.3/messages.ts";
-import { EOpType } from "https://deno.land/x/ddapps@1.5.3/operation.ts";
+import { EMType } from "ddapps/messages.ts";
+import { EOpType } from "ddapps/operation.ts";
 import { IWSMPayload } from "./messages.ddapps.ts";
 import {
   EWSOpType,
