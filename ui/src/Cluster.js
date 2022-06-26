@@ -16,10 +16,8 @@ export default class Cluster extends React.Component {
 
   async componentDidMount() {
 
-    await new WSClient(this.props.host, this.props.port).co
-      .then((client) => {
-        return client.monget("/ddapps/node/state/defaults");
-      }).then((response) => {
+    await this.client.monget("/ddapps/node/state/defaults")
+      .then((response) => {
         this.setState({ defaults: response.payload.payload.metric.value });
         this.setState({ values: response.payload.payload.metric.value });
       }).catch((error) => {
@@ -32,11 +30,7 @@ export default class Cluster extends React.Component {
   }
 
   async commit(type, param) {
-    await new WSClient(this.props.host, this.props.port).co
-      .then((client) => {
-        console.log(type, param, this.state.values, this.state.values[type][param]._value)
-        return client.config(type, param, this.state.values[type][param]._value)
-      })
+    await this.client.config(type, param, this.state.values[type][param]._value)
       .then((response) => {
         if (response.payload.payload.success) {
           document.getElementById(`${type}${param}`).style.color = "lightgreen";
@@ -45,7 +39,7 @@ export default class Cluster extends React.Component {
         }
         setTimeout(() => {
           document.getElementById(`${type}${param}`).style.color = "inherit";
-        }, 1000)
+        }, 1000);
       })
       .catch(console.error);
   }

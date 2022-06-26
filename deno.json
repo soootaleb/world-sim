@@ -3,6 +3,7 @@
   "importMap": "import_map.json",
   "tasks": {
     "start": "deno run -A --unstable world-sim.ddapps.ts",
+    "start-log": "deno run -L debug -A --unstable world-sim.ddapps.ts --console-messages",
     "start-debug": "deno run -L debug -A --unstable world-sim.ddapps.ts",
     "start-ui": "cd ui && yarn start",
     "cli": "deno run -A --unstable cli/cli.ddapps.ts",

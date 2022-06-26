@@ -10,7 +10,6 @@ import Defaults from './Defaults';
 export default class App extends React.Component {
 
   host = "localhost";
-  // host = "163.172.140.233";
   port = 8080;
 
   constructor(props) {
@@ -20,8 +19,9 @@ export default class App extends React.Component {
       tf: 20,
       pong: -1,
       run: false,
-      watch: null,
+      watch: false,
       tick: 0,
+      client: null,
       last: {},
       filters: {
         tree: true,
@@ -36,10 +36,8 @@ export default class App extends React.Component {
   }
 
   ping = async () => {
-    await new WSClient(this.host, this.port).co
-      .then((client) => {
-        return client.ping();
-      }).then((response) => {
+    await this.state.client.ping()
+      .then((response) => {
         this.setState({
           pong: response.payload.payload
         });
@@ -47,10 +45,8 @@ export default class App extends React.Component {
   };
 
   run = async () => {
-    await new WSClient(this.host, this.port).co
-      .then((client) => {
-        return client.run();
-      }).then((response) => {
+    await this.state.client.run()
+      .then((response) => {
         this.setState({
           run: response.payload.payload
         });
@@ -58,10 +54,8 @@ export default class App extends React.Component {
   };
 
   tick = async () => {
-    await new WSClient(this.host, this.port).co
-      .then((client) => {
-        return client.tick(1);
-      }).then((response) => {
+    await this.state.client.tick(1)
+      .then((response) => {
         this.setState({
           tick: response.payload.payload
         });
@@ -69,21 +63,14 @@ export default class App extends React.Component {
   };
 
   create = async (type) => {
-    await new WSClient(this.host, this.port).co
-      .then((client) => {
-        return client.create(type, 4);
-      }).then((response) => {
-        // this.setState({
-        //   tick: response.payload.payload
-        // });
+    await this.state.client.create(type, 4)
+      .then((response) => {
       }).catch((error) => console.error(error));
   };
 
   reset = async (type) => {
-    await new WSClient(this.host, this.port).co
-      .then((client) => {
-        return client.reset();
-      }).then((response) => {
+    await this.state.client.reset()
+      .then((response) => {
         this.setState({
           data: {
             avg: {},
@@ -94,112 +81,96 @@ export default class App extends React.Component {
   };
 
   watch = async () => {
-    if (!this.state.watch) {
-      await new WSClient(this.host, this.port).co
-        .then((client) => {
-          client.listen("GetState", (message) => {
-            this.setState({
-              tick: message.payload.payload.tick,
-              last: message.payload.payload.state,
-              data: {
-                qty: Object.keys(message.payload.payload.state.qty)
-                  .reduce((acc, key) => {
-
-                    acc[key] = [...(this.state.data.qty[key] || []), {
-                      x: message.payload.payload.tick,
-                      y: message.payload.payload.state.qty[key]
-                    }].slice((this.state.data.qty[key] || []).length - 200);
-
-                    return acc;
-                  }, {}),
-                avg: Object.keys(message.payload.payload.state.avg)
-                  .reduce((acc, key) => {
-
-                    acc[key] = [...(this.state.data.avg[key] || []), {
-                      x: message.payload.payload.tick,
-                      y: message.payload.payload.state.avg[key]
-                    }].slice((this.state.data.avg[key] || []).length - 200);
-
-                    return acc;
-                  }, {})
-              }
-            });
-          });
-
-          this.setState({ watch: client });
-
-          return client.watch();
-        }).then((response) => {
-          this.state.watch.disconnect();
-          this.setState({ watch: null });
-        }).catch((error) => console.error(error));
+    if (this.state.watch) {
+      await this.state.client.unwatch();
+      this.setState({ watch: false });
     } else {
-      this.state.watch.disconnect();
-      this.setState({ watch: null });
+      this.state.client.listen("GetState", (message) => {
+        this.setState({
+          tick: message.payload.payload.tick,
+          last: message.payload.payload.state,
+          data: {
+            qty: Object.keys(message.payload.payload.state.qty)
+              .reduce((acc, key) => {
+
+                acc[key] = [...(this.state.data.qty[key] || []), {
+                  x: message.payload.payload.tick,
+                  y: message.payload.payload.state.qty[key]
+                }].slice((this.state.data.qty[key] || []).length - 200);
+
+                return acc;
+              }, {}),
+            avg: Object.keys(message.payload.payload.state.avg)
+              .reduce((acc, key) => {
+
+                acc[key] = [...(this.state.data.avg[key] || []), {
+                  x: message.payload.payload.tick,
+                  y: message.payload.payload.state.avg[key]
+                }].slice((this.state.data.avg[key] || []).length - 200);
+
+                return acc;
+              }, {})
+          }
+        });
+      });
+
+      await this.state.client.watch();
+
+      this.setState({ watch: true });
     }
   };
 
   stf = async (event) => {
     const tf = parseInt(event.target.value);
-    await new WSClient(this.host, this.port).co
-      .then((client) => {
-        return client.stfrequency(tf);
-      }).then((response) => {
+    await this.state.client.stfrequency(tf)
+      .then((response) => {
         this.setState({ tf: tf });
       }).catch((error) => console.error(error));
   };
 
   crash = async (event) => {
-    await new WSClient(this.host, this.port).co
-      .then((client) => {
-        return client.crash();
-      }).then((response) => {
+    await this.state.client.crash()
+      .then((_response) => {
         this.setState({ watch: null });
       }).catch((error) => console.error(error));
   };
 
+  show = (entity) => {
+    this.setState({
+      filters: {
+        ...this.state.filters[entity],
+        [entity]: !this.state.filters.entity
+      }
+    });
+  };
+
   async componentDidMount() {
 
-    new WSClient(this.host, this.port).co
-      .then((client) => client.monget("/ddapps/node/state/ticksPerSecond/_value"))
+    const client = await new WSClient(this.host, this.port).co;
+    client.keepalive();
+
+    await client.monget("/ddapps/node/state/ticksPerSecond/_value")
       .then((response) => this.setState({ tf: response.payload.payload.metric.value }));
 
-    await new WSClient(this.host, this.port).co
-      .then((client) => {
+    client.ws.onclose = () => {
 
-        client.ws.onclose = () => {
-          this.setState({ client: null });
-          setTimeout(() => {
-            this.componentDidMount();
-          }, 1000);
-        };
+      setTimeout(() => {
+        this.componentDidMount();
+      }, 1000);
 
-        this.setState({
-          client: client,
-          data: {
-            avg: {},
-            qty: {}
-          }
-        });
-
-        this.watch();
-      }).catch((error) => {
-        this.setState({ client: null });
-        setTimeout(() => {
-          this.componentDidMount();
-        }, 1000);
+      this.setState({
+        client: null,
+        data: {
+          avg: {},
+          qty: {}
+        }
       });
-  }
+    };
 
-  show = (entity) => {
-    // this.setState({
-    //   filters: {
-    //     ...this.state.filters,
-    //     [entity]: !this.state.filters[entity]
-    //   }
-    // })
-    this.state.filters[entity] = !this.state.filters[entity];
-  };
+    // await this.watch();
+
+    this.setState({ client: client });
+  }
 
   render() {
     return (
@@ -256,18 +227,18 @@ export default class App extends React.Component {
           </Container>
         </Navbar>
         <div className="tabs">
-          <Tabs defaultActiveKey="logs" id="uncontrolled-tab-example" className="mb-3">
+          <Tabs defaultActiveKey="defaults" id="uncontrolled-tab-example" className="mb-3">
             <Tab eventKey="home" title="Home">
               home
             </Tab>
             <Tab eventKey="stats" title="Stats">
-              <Content data={this.state.data} filters={this.state.filters}></Content>
+              <Content client={this.state.client} data={this.state.data} filters={this.state.filters}></Content>
             </Tab>
             <Tab eventKey="logs" title="Logs">
-              <Logs host={this.host} port={this.port} />
+              <Logs client={this.state.client} />
             </Tab>
             <Tab eventKey="defaults" title="Defaults">
-              <Defaults host={this.host} port={this.port} />
+              <Defaults client={this.state.client} />
             </Tab>
           </Tabs>
         </div>

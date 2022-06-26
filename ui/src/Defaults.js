@@ -1,9 +1,10 @@
 import './Defaults.css';
 import React from 'react';
-import { WSClient } from './client.bundle';
-import { Accordion, Tabs, Tab, Button, Navbar, NavDropdown, Container } from 'react-bootstrap';
+import { Accordion, Button } from 'react-bootstrap';
 
 export default class Defaults extends React.Component {
+
+  fetched = false
 
   constructor(props) {
     super(props);
@@ -14,29 +15,27 @@ export default class Defaults extends React.Component {
     };
   }
 
-  async componentDidMount() {
-
-    await new WSClient(this.props.host, this.props.port).co
-      .then((client) => {
-        return client.monget("/ddapps/node/state/defaults");
-      }).then((response) => {
-        this.setState({ defaults: response.payload.payload.metric.value });
-        this.setState({ values: response.payload.payload.metric.value });
-      }).catch((error) => {
-        this.setState({ defaults: {} });
-        console.error(error);
-        setTimeout(() => {
-          this.componentDidMount();
-        }, 1000);
-      });
+  async componentDidUpdate() {
+    if (!this.fetched) {
+      await this.props.client?.monget("/ddapps/node/state/defaults")
+        .then((response) => {
+          this.fetched = true
+          this.setState({ defaults: response.payload.payload.metric.value });
+          this.setState({ values: response.payload.payload.metric.value });
+        }).catch((error) => {
+          console.log("ERROR")
+          this.setState({ defaults: {} });
+          console.error(error);
+          setTimeout(() => {
+            this.fetched = false
+            this.componentDidUpdate();
+          }, 1000);
+        });
+    }
   }
 
   async commit(type, param) {
-    await new WSClient(this.props.host, this.props.port).co
-      .then((client) => {
-        console.log(type, param, this.state.values, this.state.values[type][param]._value)
-        return client.config(type, param, this.state.values[type][param]._value)
-      })
+    await this.props.client.config(type, param, this.state.values[type][param]._value)
       .then((response) => {
         if (response.payload.payload.success) {
           document.getElementById(`${type}${param}`).style.color = "lightgreen";
@@ -45,12 +44,12 @@ export default class Defaults extends React.Component {
         }
         setTimeout(() => {
           document.getElementById(`${type}${param}`).style.color = "inherit";
-        }, 1000)
+        }, 1000);
       })
       .catch(console.error);
   }
 
-  async config(type, param, value) {
+  config(type, param, value) {
     this.setState({
       values: {
         ...this.state.values,

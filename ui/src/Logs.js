@@ -1,6 +1,5 @@
 import './Logs.css';
 import React from 'react';
-import { WSClient } from './client.bundle';
 import { Accordion, ButtonGroup, Button, ToggleButton } from 'react-bootstrap';
 
 
@@ -14,47 +13,10 @@ export default class Logs extends React.Component {
     this.state = {
       follow: true,
       logs: [],
-      level: "errors"
+      level: "full"
     };
   }
 
-  // [FIXME] Too much clients...
-  componentWillUnmount() {
-    this.client?.disconnect();
-  }
-
-  async componentDidMount() {
-
-    this.client = await new WSClient(this.props.host, this.props.port).co
-      .then((client) => {
-
-        this.setState({ logs: [] });
-
-        client.ws.onclose = () => {
-          // this.setState({ logs: [] });
-          setTimeout(() => {
-            this.componentDidMount();
-          }, 1000);
-        };
-
-        client.listen("MonWatch", (message) => {
-          if (this.state.follow && this.filter(message)) {
-            const logs = [...this.state.logs, message];
-            this.setState({
-              logs: logs
-            });
-          }
-        });
-
-        client.monwatch("/ddapps/node/logs");
-      }).catch((error) => {
-        // this.setState({ logs: [] });
-        console.error(error);
-        setTimeout(() => {
-          this.componentDidMount();
-        }, 1000);
-      });
-  }
 
   filter = (message) => {
     if (this.state.level === "partial") {
@@ -85,6 +47,27 @@ export default class Logs extends React.Component {
       return !/[a-z]+/g.test(source) || !/[a-z]+/g.test(destination);
     } else {
       return false;
+    }
+  }
+
+  componentWillUnmount() {
+    this.client?.disconnect();
+  }
+
+  async componentDidMount() {
+    if (this.props.client) {
+      await this.props.client.monwatch("/ddapps/node/logs");
+
+      this.setState({ logs: [] });
+
+      await this.props.client?.listen("MonWatch", (message) => {
+        if (this.state.follow && this.filter(message)) {
+          const logs = [...this.state.logs, message];
+          this.setState({
+            logs: logs
+          });
+        }
+      });
     }
   }
 
