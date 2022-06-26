@@ -5,7 +5,7 @@ import { Accordion, ButtonGroup, Button, ToggleButton } from 'react-bootstrap';
 
 export default class Logs extends React.Component {
 
-  client;
+  connected;
 
   constructor(props) {
     super(props);
@@ -50,16 +50,11 @@ export default class Logs extends React.Component {
     }
   }
 
-  componentWillUnmount() {
-    this.client?.disconnect();
-  }
-
-  async componentDidMount() {
-    if (this.props.client) {
-      await this.props.client.monwatch("/ddapps/node/logs");
-
+  async componentDidUpdate() {
+    if (this.props.client && !this.connected) {
+      this.connected = true
       this.setState({ logs: [] });
-
+      
       await this.props.client?.listen("MonWatch", (message) => {
         if (this.state.follow && this.filter(message)) {
           const logs = [...this.state.logs, message];
@@ -68,6 +63,8 @@ export default class Logs extends React.Component {
           });
         }
       });
+      
+      await this.props.client.monwatch("/ddapps/node/logs");
     }
   }
 

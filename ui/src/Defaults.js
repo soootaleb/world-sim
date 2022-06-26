@@ -16,7 +16,7 @@ export default class Defaults extends React.Component {
   }
 
   async componentDidUpdate() {
-    if (!this.fetched) {
+    if (this.props.client && !this.fetched) {
       await this.props.client?.monget("/ddapps/node/state/defaults")
         .then((response) => {
           this.fetched = true

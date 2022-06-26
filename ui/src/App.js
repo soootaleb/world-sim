@@ -80,12 +80,12 @@ export default class App extends React.Component {
       }).catch((error) => console.error(error));
   };
 
-  watch = async () => {
+  watch = async (client) => {
     if (this.state.watch) {
-      await this.state.client.unwatch();
+      await (this.state.client || client).unwatch();
       this.setState({ watch: false });
     } else {
-      this.state.client.listen("GetState", (message) => {
+      (this.state.client || client).listen("GetState", (message) => {
         this.setState({
           tick: message.payload.payload.tick,
           last: message.payload.payload.state,
@@ -114,7 +114,7 @@ export default class App extends React.Component {
         });
       });
 
-      await this.state.client.watch();
+      await (this.state.client || client).watch();
 
       this.setState({ watch: true });
     }
@@ -146,30 +146,34 @@ export default class App extends React.Component {
 
   async componentDidMount() {
 
-    const client = await new WSClient(this.host, this.port).co;
-    client.keepalive();
+    if (!this.mounted) {
+      this.mounted = true
+      const client = await new WSClient(this.host, this.port).co;
+      client.keepalive();
+  
+      await client.monget("/ddapps/node/state/ticksPerSecond/_value")
+        .then((response) => this.setState({ tf: response.payload.payload.metric.value }));
+  
+      client.ws.onclose = () => {
+  
+        setTimeout(() => {
+          this.componentDidMount();
+        }, 1000);
+  
+        this.setState({
+          client: null,
+          data: {
+            avg: {},
+            qty: {}
+          }
+        });
+      };
+  
+      await this.watch(client);
+      this.setState({ client: client });
+  
+    }
 
-    await client.monget("/ddapps/node/state/ticksPerSecond/_value")
-      .then((response) => this.setState({ tf: response.payload.payload.metric.value }));
-
-    client.ws.onclose = () => {
-
-      setTimeout(() => {
-        this.componentDidMount();
-      }, 1000);
-
-      this.setState({
-        client: null,
-        data: {
-          avg: {},
-          qty: {}
-        }
-      });
-    };
-
-    // await this.watch();
-
-    this.setState({ client: client });
   }
 
   render() {
@@ -227,7 +231,7 @@ export default class App extends React.Component {
           </Container>
         </Navbar>
         <div className="tabs">
-          <Tabs defaultActiveKey="defaults" id="uncontrolled-tab-example" className="mb-3">
+          <Tabs defaultActiveKey="logs" id="uncontrolled-tab-example" className="mb-3">
             <Tab eventKey="home" title="Home">
               home
             </Tab>
