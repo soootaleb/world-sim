@@ -13,7 +13,7 @@ export default class Logs extends React.Component {
     this.state = {
       follow: true,
       logs: [],
-      level: "full"
+      level: "partial"
     };
   }
 
@@ -88,6 +88,7 @@ export default class Logs extends React.Component {
           <Button onClick={() => this.setState({ level: "partial" })} variant={this.state.level === "partial" ? "primary" : "secondary"}>Partial</Button>
           <Button onClick={() => this.setState({ level: "full" })} variant={this.state.level === "full" ? "primary" : "secondary"}>Full</Button>
         </ButtonGroup>
+        <hr/>
         <Accordion className="Logs">
           {
             this.state.logs.map((notification, index) => {
