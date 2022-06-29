@@ -41,7 +41,7 @@ export default class Logs extends React.Component {
   }
 
   isIOMessage(message) {
-    if (message.type === "ClientNotification") {
+    if (message.type === "ClientNotification" && message.payload.payload.value.payload.type !== "GetState") {
       const source = message.payload.payload.value.source;
       const destination = message.payload.payload.value.destination;
       return !/[a-z]+/g.test(source) || !/[a-z]+/g.test(destination);
