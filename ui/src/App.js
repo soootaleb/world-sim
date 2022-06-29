@@ -231,7 +231,7 @@ export default class App extends React.Component {
           </Container>
         </Navbar>
         <div className="tabs">
-          <Tabs defaultActiveKey="logs" id="uncontrolled-tab-example" className="mb-3">
+          <Tabs defaultActiveKey="stats" id="uncontrolled-tab-example" className="mb-3">
             <Tab eventKey="home" title="Home">
               home
             </Tab>
