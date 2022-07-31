@@ -6,7 +6,7 @@ export default class Cli extends React.Component {
   keypress = async (ev) => {
     if (ev.code === "Enter") {
       const args = ev.target.value.split(" ");
-      await this.client[args[0]](...args.slice(1))
+      await this.props.client[args[0]](...args.slice(1))
         .then((response) => {
           console.log(response);
           ev.target.value = "";
