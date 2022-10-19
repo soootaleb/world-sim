@@ -108,7 +108,7 @@ export class WSWorld extends Messenger<
       "jacks-hunger": Math.round(this.state.sim.sum["jacks-hunger"] * 100 / jacks.length),
       "jacks-thirst": Math.round(this.state.sim.sum["jacks-thirst"] * 100 / jacks.length),
       "jacks-rellife": Math.round(lifeRelSum / jacks.length),
-      "exchange-qty": this.state.exchange.asks.length - this.state.exchange.bids.length
+      "exchange-qty": this.state.exchange.bids.length - this.state.exchange.asks.length
     }
 
     this.state.sim.qty = {
