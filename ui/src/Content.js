@@ -17,6 +17,8 @@ export default class Content extends React.Component {
                   return this.props.filters.tree;
                 case key.includes('jack'):
                   return this.props.filters.jack;
+                case key.includes('exchange'):
+                  return this.props.filters.exchange;
                 default:
                   return true;
               }
@@ -50,6 +52,8 @@ export default class Content extends React.Component {
                   return this.props.filters.tree;
                 case key.includes('jack'):
                   return this.props.filters.jack;
+                case key.includes('exchange'):
+                  return this.props.filters.exchange;
                 default:
                   return true;
               }

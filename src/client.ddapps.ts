@@ -91,4 +91,12 @@ export class WSClient extends Client<
   public config(type: string, param: string, value: number, prop = 1) {
     return this.send(EWSOpType.Config, { type, param, value, prop });
   }
+  
+  public ask(resource: 'wood' | 'water' | 'fruit', price: number, amount: number) {
+    return this.send(EWSOpType.CreateAsk, { resource, price, amount });
+  }
+  
+  public bid(resource: 'wood' | 'water' | 'fruit', price: number, amount: number) {
+    return this.send(EWSOpType.CreateBid, { resource, price, amount });
+  }
 }

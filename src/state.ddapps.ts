@@ -53,5 +53,10 @@ export const state: IWSState = {
       baseReproductionProbability: WSNumber.of(0.5),
       baseReproductionMax: WSNumber.of(10),
     }
+  },
+
+  exchange: {
+    asks: [],
+    bids: []
   }
 };

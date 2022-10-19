@@ -16,6 +16,7 @@ import { WSM } from "./type.ddapps.ts";
 import { WSApi } from "./api.ddapps.ts";
 import { WSTLumberjack } from "./ticked/lumberjack.ticked.ts";
 import { WSNumber } from "./models/models.mod.ts";
+import { WSTExchange } from "./ticked/exchange.ticked.ts";
 
 export class WSWorld extends Messenger<
   IWSRequestPayload,
@@ -32,13 +33,14 @@ export class WSWorld extends Messenger<
       max?: WSNumber
     }
   } = {
+      exchange: { type: WSTExchange, amount: WSNumber.ONE },
       sources: { type: WSTWaterSource, amount: WSNumber.of(4) },
-      trees: { type: WSTTree, amount: WSNumber.of(4) }, // [WARN] Add delay if sources are not created full , delay: WSTWaterSource.GROWTH_TICKS_CAP.f },
+      trees: { type: WSTTree, amount: WSNumber.of(40) }, // [WARN] Add delay if sources are not created full , delay: WSTWaterSource.GROWTH_TICKS_CAP.f },
       jacks: {
         type: WSTLumberjack,
         amount: WSNumber.of(4),
         delay: WSNumber.of(400) // [FIXME] Should depend on state.baseTicksGrowth
-      },
+      }
     }
 
   private create<T extends WSTickedComponent>(amount: WSNumber, type: (new (state: IWSState) => T), delay?: WSNumber): void {
@@ -106,6 +108,7 @@ export class WSWorld extends Messenger<
       "jacks-hunger": Math.round(this.state.sim.sum["jacks-hunger"] * 100 / jacks.length),
       "jacks-thirst": Math.round(this.state.sim.sum["jacks-thirst"] * 100 / jacks.length),
       "jacks-rellife": Math.round(lifeRelSum / jacks.length),
+      "exchange-qty": this.state.exchange.asks.length - this.state.exchange.bids.length
     }
 
     this.state.sim.qty = {

@@ -6,6 +6,7 @@ import { watch } from "./commands/watch.ts";
 import { config } from "./commands/config.ts";
 import { run } from "./commands/run.ts";
 import { tick } from "./commands/tick.ts";
+import { exchange } from "./commands/exchange.ts";
 
 import { Command } from "cliffy";
 import { EWSOpType } from "../src/operations.ddapps.ts";
@@ -65,4 +66,5 @@ await ddappsctl
   .command("run", run)
   .command("tick", tick)
   .command("sint", sint)
+  .command("exchange", exchange)
   .parse(Deno.args);

@@ -3,6 +3,7 @@
   "importMap": "import_map.json",
   "tasks": {
     "start": "deno run -A --unstable world-sim.ddapps.ts",
+    "start-run": "deno run -A --unstable world-sim.ddapps.ts --run",
     "start-log": "deno run -L debug -A --unstable world-sim.ddapps.ts --console-messages partial",
     "start-debug": "deno run -L debug -A --unstable world-sim.ddapps.ts",
     "start-ui": "cd ui && yarn start",
@@ -11,11 +12,14 @@
     "build-serve-ui": "cd ui && npm run build && python3 -m http.server -d build",
     "bundle-client": "deno bundle --unstable src/client.ddapps.ts ui/src/client.bundle.js",
     "compile": "deno task compile-cli && deno task compile-world-sim",
+    "compile-m1": "deno task compile-cli-m1 && deno task compile-world-sim-m1",
     "compile-linux": "deno task compile-cli-linux && deno task compile-world-sim-linux",
     "compile-cli": "deno compile --allow-all --unstable --output wsctl --import-map=import_map.json cli/cli.ddapps.ts",
     "compile-cli-linux": "deno compile --allow-all --unstable --output wsctl --import-map=import_map.json --target=x86_64-unknown-linux-gnu cli/cli.ddapps.ts",
+    "compile-cli-m1": "deno compile --allow-all --unstable --output wsctl --import-map=import_map.json --target=aarch64-apple-darwin cli/cli.ddapps.ts",
     "compile-world-sim": "deno compile --allow-all --unstable --output ws --import-map=import_map.json world-sim.ddapps.ts",
     "compile-world-sim-linux": "deno compile --allow-all --unstable --output ws --import-map=import_map.json --target=x86_64-unknown-linux-gnu world-sim.ddapps.ts",
+    "compile-world-sim-m1": "deno compile --allow-all --unstable --output ws --import-map=import_map.json --target=aarch64-apple-darwin world-sim.ddapps.ts",
     "remote-deploy": "deno task compile-linux && scp -i '~/.ssh/scw-world-sim' ws root@212.47.248.166:/ws; scp -i '~/.ssh/scw-world-sim' wsctl root@212.47.248.166:/wsctl",
     "remote-run": "ssh -i '~/.ssh/scw-world-sim' root@212.47.248.166 'pkill ws; /ws --run &> /ws.log &'",
     "remote-upgrade": "deno task remote-deploy && deno task remote-run"

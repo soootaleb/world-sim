@@ -7,6 +7,7 @@ import { WSTWaterSource } from "./water-source.ticked.ts";
 import { WSNumber } from "../models/models.mod.ts";
 import { WSApi } from "../api.ddapps.ts";
 import { IWSState } from "../interface.ddapps.ts";
+import { WSTExchange } from "./exchange.ticked.ts";
 
 export class WSTLumberjack extends WSTickedComponent {
 
@@ -39,6 +40,8 @@ export class WSTLumberjack extends WSTickedComponent {
   private woodAbundanceGatheringLimit: WSNumber;
   private fruitsAbundanceOverGatheringLimit: WSNumber;
   private waterAbundanceOverRefillingLimit: WSNumber;
+
+  private money = WSNumber.of(100);
 
   constructor(state: IWSState) {
     super(state);
@@ -73,7 +76,9 @@ export class WSTLumberjack extends WSTickedComponent {
       hunger: this.hunger.f.div(this.maxLife),
       thirst: this.thirst.f.div(this.maxLife),
 
-      rprprob: this.currentRprProb
+      rprprob: this.currentRprProb,
+
+      money: this.money.f
     }
   }
 
@@ -186,8 +191,33 @@ export class WSTLumberjack extends WSTickedComponent {
         }
       }
     }
+
+    this.luck()
   }
 
+  private luck() {
+
+    const chance = WSNumber.random()
+
+    if (chance.infeq(WSNumber.of(0.1))) {
+      this.money.add(WSNumber.ONE)
+      this.sendLog(`WSTLumberjack::${this.id}::Luck::${this.money.val}`);
+    }
+
+    if (chance.infeq(WSNumber.of(0.1))) {
+      this.send(EWSMType.Ask, {
+        resource: 'wood',
+        price: WSNumber.ONE,
+        who: this.id
+      }, WSTExchange);
+    } else if (chance.supeq(WSNumber.of(0.9))) {
+      this.send(EWSMType.Bid, {
+        resource: 'wood',
+        price: WSNumber.ONE,
+        who: this.id
+      }, WSTExchange);
+    }
+  }
 
   private ht(): void {
     this.h();
@@ -321,5 +351,18 @@ export class WSTLumberjack extends WSTickedComponent {
     this.sendLog(`WSTLumberjack::${this.id}::Chop::${gathered.val}`);
 
     return gathered;
+  }
+
+  public earn(amount: WSNumber): WSNumber {
+    return this.money.add(amount)
+  }
+  
+  public spend(amount: WSNumber): boolean {
+    if (this.money.supeq(amount)) {
+      this.money.sub(amount)
+      return true
+    } else {
+      return false
+    }
   }
 }

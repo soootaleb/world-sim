@@ -18,6 +18,7 @@ import { WSTLumberjack } from "./ticked/lumberjack.ticked.ts";
 import { WSTickedComponent } from "./ticked-component.ddapps.ts";
 import { WSTicker } from "./ticker.ddapps.ts";
 import { EComponent } from "ddapps/enumeration.ts";
+import { WSTExchange } from "./ticked/exchange.ticked.ts";
 
 export class WSApi extends Api<
   IWSRequestPayload,
@@ -75,6 +76,40 @@ export class WSApi extends Api<
           type: payload.type,
           amount: WSNumber.of(payload.amount)
         }, WSWorld)
+        break;
+      }
+      case EWSOpType.CreateAsk: {
+        const payload = message.payload.payload as IWSRequestPayload[EWSOpType.CreateAsk];
+        const who = this.state.ticked.all(WSTLumberjack)[0]
+        if (who) {
+          for (let index = 0; index < payload.amount; index++) {
+            this.send(EWSMType.Ask, {
+              resource: payload.resource,
+              price: WSNumber.of(payload.price),
+              who: who.id
+            }, WSTExchange)
+          }
+          this.response(EWSOpType.CreateAsk, { who: who.id })
+        } else {
+          this.response(EWSOpType.CreateAsk, { who: 'N/A' })
+        }
+        break;
+      }
+      case EWSOpType.CreateBid: {
+        const payload = message.payload.payload as IWSRequestPayload[EWSOpType.CreateBid];
+        const who = this.state.ticked.all(WSTLumberjack)[1]
+        if (who) {
+          for (let index = 0; index < payload.amount; index++) {
+            this.send(EWSMType.Bid, {
+              resource: payload.resource,
+              price: WSNumber.of(payload.price),
+              who: who.id
+            }, WSTExchange)
+          }
+          this.response(EWSOpType.CreateBid, { who: who.id })
+        } else {
+          this.response(EWSOpType.CreateBid, { who: 'N/A' })
+        }
         break;
       }
       case EWSOpType.GetState: {

@@ -24,9 +24,10 @@ export default class App extends React.Component {
       client: null,
       last: {},
       filters: {
-        tree: true,
-        ws: true,
-        jack: true
+        tree: false,
+        ws: false,
+        jack: false,
+        exchange: true
       },
       data: {
         avg: {},
@@ -211,6 +212,9 @@ export default class App extends React.Component {
               </NavDropdown.Item>
               <NavDropdown.Item>
                 <Button onClick={() => this.show('jack')} variant={this.state.filters.jack ? 'success' : 'danger'}>Jack</Button>
+              </NavDropdown.Item>
+              <NavDropdown.Item>
+                <Button onClick={() => this.show('exchange')} variant={this.state.filters.exchange ? 'success' : 'danger'}>Exchange</Button>
               </NavDropdown.Item>
             </NavDropdown>
             <NavDropdown title="Add/Remove" id="basic-nav-dropdown">

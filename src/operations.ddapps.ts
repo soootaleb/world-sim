@@ -2,8 +2,7 @@
 import { IRequestPayload, IResponsePayload } from "ddapps/operation.ts";
 import { TWSSimState } from "./type.ddapps.ts";
 
-export enum EWSOpType {
- 
+export enum EWSOpType { 
   Chop = "Chop",
   Run = "Run",
   Throw = "Throw",
@@ -14,6 +13,8 @@ export enum EWSOpType {
   Config = "Config",
   GetState = "GetState",
   UnGetState = "UnGetState",
+  CreateAsk = "CreateAsk",
+  CreateBid = "CreateBid",
   CreateError = "CreateError",
   DeleteError = "DeleteError",
   EntityNotFound = "EntityNotFound",
@@ -44,6 +45,18 @@ export interface IWSRequestPayload extends IRequestPayload {
     amount: number
   };
 
+  [EWSOpType.CreateAsk]: {
+    resource: 'wood' | 'water' | 'fruit',
+    price: number,
+    amount: number
+  };
+
+  [EWSOpType.CreateBid]: {
+    resource: 'wood' | 'water' | 'fruit',
+    price: number,
+    amount: number
+  };
+
   [EWSOpType.Chop]: string;
   [EWSOpType.GetState]: null;
   [EWSOpType.UnGetState]: null;
@@ -71,4 +84,11 @@ export interface IWSResponsePayload extends IResponsePayload {
     message: string
   };
   [EWSOpType.SetTicksFrequency]: number;
+  [EWSOpType.CreateAsk]: {
+    who: string
+  };
+
+  [EWSOpType.CreateBid]: {
+    who: string
+  };
 }

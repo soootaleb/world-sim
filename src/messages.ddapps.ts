@@ -9,6 +9,8 @@ import { WSNumber } from "./models/models.mod.ts";
 export enum EWSMType {
   Tick = "Tick",
   Chop = "Chop",
+  Ask = "Ask",
+  Bid = "Bid",
   Dead = "Dead",
   Create = "Create",
   Delete = "Delete",
@@ -21,6 +23,16 @@ export enum EWSMType {
  */
 export interface IWSMPayload extends IMPayload<IWSRequestPayload, IWSResponsePayload> {
   [EWSMType.Tick]: WSNumber;
+  [EWSMType.Ask]: {
+    resource: 'wood' | 'water' | 'fruit',
+    price: WSNumber,
+    who: string
+  };
+  [EWSMType.Bid]: {
+    resource: 'wood' | 'water' | 'fruit',
+    price: WSNumber,
+    who: string
+  };
   [EWSMType.Chop]: string;
   [EWSMType.Dead]: string;
   [EWSMType.Create]: {
