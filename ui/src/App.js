@@ -26,7 +26,7 @@ export default class App extends React.Component {
       filters: {
         tree: false,
         ws: false,
-        jack: false,
+        jack: true,
         exchange: true
       },
       data: {
@@ -139,8 +139,8 @@ export default class App extends React.Component {
   show = (entity) => {
     this.setState({
       filters: {
-        ...this.state.filters[entity],
-        [entity]: !this.state.filters.entity
+        ...this.state.filters,
+        [entity]: !this.state.filters[entity]
       }
     });
   };
